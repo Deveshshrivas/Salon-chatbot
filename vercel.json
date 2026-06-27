@@ -1,3 +1,6 @@
 {
+  "framework": null,
+  "buildCommand": "next build",
+  "outputDirectory": "out",
   "cleanUrls": true
 }
