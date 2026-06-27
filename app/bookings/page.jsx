@@ -18,11 +18,12 @@ function fmtDateTime(ts) {
   if (!ts) return '—'
   return new Date(ts).toLocaleString('en-GB', {
     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+    timeZone: 'Asia/Bangkok',
   })
 }
 function fmtDate(ts) {
   if (!ts) return '—'
-  return new Date(ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  return new Date(ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' })
 }
 function toLocalDateInput(ts) {
   if (!ts) return ''
@@ -223,7 +224,7 @@ export default function BookingsPage() {
                       <p className="text-xs text-ink-400">{b.customers?.phone || ''}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-ink-700">{b.services?.name_th || '—'}</p>
+                      <p className="text-ink-700">{b.services?.name_th || b.service_name_th || '—'}</p>
                       <p className="text-xs text-ink-400">{b.stylists?.name_th || ''} • {b.branches?.name_th || ''}</p>
                     </td>
                     <td className="px-4 py-3 text-ink-600">{fmtDateTime(b.start_at)}</td>
@@ -253,13 +254,14 @@ export default function BookingsPage() {
                 <DetailRow label="Customer" value={selected.customers?.name} />
                 <DetailRow label="Phone" value={selected.customers?.phone} />
                 <DetailRow label="Branch" value={selected.branches?.name_th} />
-                <DetailRow label="Service" value={selected.services?.name_th} />
+                <DetailRow label="Service" value={selected.services?.name_th || selected.service_name_th} />
                 <DetailRow label="Stylist" value={selected.stylists?.name_th} />
                 <DetailRow label="Start" value={fmtDateTime(selected.start_at)} />
                 <DetailRow label="End" value={fmtDateTime(selected.end_at)} />
                 <DetailRow label="Source" value={selected.source} />
                 {selected.customer_notes && <DetailRow label="Notes" value={selected.customer_notes} block />}
                 {selected.internal_notes && <DetailRow label="Internal" value={selected.internal_notes} block />}
+                {selected.notes && <DetailRow label="Notes" value={selected.notes} block />}
               </div>
 
               {selected.status !== 'cancelled' && selected.status !== 'completed' && (
