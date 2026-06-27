@@ -96,20 +96,20 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <header className="flex items-end justify-between mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-rose-500 mb-2">Team Admin</p>
-          <h1 className="display text-4xl text-ink-800">Staff</h1>
+          <h1 className="display text-3xl sm:text-4xl text-ink-800">Staff</h1>
           <p className="text-sm text-ink-400 mt-1">{employees.length} active members</p>
         </div>
-        <Button variant="rose" onClick={startNew}>+ Add Staff</Button>
+        <Button variant="rose" onClick={startNew} className="self-start sm:self-auto">+ Add Staff</Button>
       </header>
 
       {showForm && (
         <Card className="p-6 mb-6">
           <h3 className="display text-xl text-ink-800 mb-5">{form.id ? 'Edit Staff' : 'New Staff Member'}</h3>
-          <div className="grid grid-cols-2 gap-4 max-w-3xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
             <Field label="Name *" value={form.name} onChange={v => setForm({...form, name: v})} placeholder="Somchai" />
             <Field label="Email *" type="email" value={form.email} onChange={v => setForm({...form, email: v})} />
             <div>
@@ -127,7 +127,7 @@ export default function EmployeesPage() {
                 {NOTIFY_CHANNELS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
-            <div className="col-span-2">
+            <div className="col-span-full">
               <label className="text-xs uppercase tracking-wider text-ink-400 mb-2 block">Assigned Branches</label>
               <div className="flex flex-wrap gap-2">
                 {branches.map(b => (
@@ -139,7 +139,7 @@ export default function EmployeesPage() {
               </div>
               <p className="text-xs text-ink-300 mt-2">First selected branch becomes the primary branch.</p>
             </div>
-            <div className="col-span-2">
+            <div className="col-span-full">
               <Toggle label="Active" value={form.is_active} onChange={v => setForm({...form, is_active: v})} />
             </div>
           </div>
@@ -157,7 +157,8 @@ export default function EmployeesPage() {
             action={<Button variant="rose" onClick={startNew}>+ Add First Staff</Button>} />
         ) : (
           <Card className="overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto scrollbar-thin">
+            <table className="w-full text-sm min-w-[44rem]">
               <thead className="bg-cream-bg">
                 <tr>
                   <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-ink-400 font-medium">Name</th>
@@ -204,6 +205,7 @@ export default function EmployeesPage() {
                 })}
               </tbody>
             </table>
+            </div>
           </Card>
       )}
     </div>

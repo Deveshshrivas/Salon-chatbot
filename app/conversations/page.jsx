@@ -502,6 +502,29 @@ function AttachmentPreview({ attachment, onRemove }) {
   )
 }
 
+// Render a before/after image pair side-by-side (or a single one if only one is
+// present), with corner labels. Used both for standalone before/after attachments
+// and inside the promotion block when a promo carries result photos.
+function BeforeAfterPair({ before, after, className = '' }) {
+  if (!before && !after) return null
+  return (
+    <div className={`grid ${before && after ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5 ${className}`}>
+      {before && (
+        <div className="relative">
+          <img src={before} alt="before" className="w-full max-h-40 object-cover rounded-lg" />
+          <span className="absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-black/55 text-white">Before</span>
+        </div>
+      )}
+      {after && (
+        <div className="relative">
+          <img src={after} alt="after" className="w-full max-h-40 object-cover rounded-lg" />
+          <span className="absolute bottom-1 right-1 text-[10px] px-1.5 py-0.5 rounded bg-black/55 text-white">After</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function MessageBubble({ msg }) {
   // Layout rule:
   //   - direction='inbound'  → customer sent it → LEFT
@@ -529,13 +552,49 @@ function MessageBubble({ msg }) {
   // Pull an image URL out of metadata for ANY image-bearing attachment type
   // (deposit_qr, size chart, before/after, portfolio…), not just type==='image'.
   // promotion/link/map have their own render blocks below, so exclude them here.
-  const attImageUrl = (() => {
-    if (!att || typeof att !== 'object') return null
-    if (att.type === 'promotion' || att.type === 'link' || att.type === 'map') return null
-    const cand = att.url || att.image_url || att.first_attachment?.url ||
-      (Array.isArray(att.attachments) ? att.attachments.find(a => a && a.url)?.url : null)
-    return typeof cand === 'string' && cand.trim() ? cand : null
+  // Collect EVERY image the bot recorded on this message. The real data shape stores
+  // each image as its own entry in metadata.attachments[] with a `type` tag
+  // (promotion, before_after_before, before_after_after, deposit_qr, image=size chart…),
+  // so reading the array shows the promo AND Before AND After — not just the first.
+  // We fall back to the flat fields for older/simpler messages without attachments[].
+  const clean = v => (typeof v === 'string' && v.trim() ? v.trim() : null)
+  const SKIP_TYPES = new Set(['location', 'link', 'map'])
+  const attItems = (() => {
+    if (!att || typeof att !== 'object') return []
+    const out = []
+    const seen = new Set()
+    const push = (url, type) => {
+      const u = clean(url)
+      if (!u || seen.has(u)) return
+      seen.add(u); out.push({ url: u, type: (type || '').toLowerCase() })
+    }
+    if (Array.isArray(att.attachments)) {
+      for (const a of att.attachments) {
+        if (a && typeof a === 'object' && !SKIP_TYPES.has(a.type)) push(a.url || a.image_url, a.type)
+      }
+    }
+    if (out.length === 0) {
+      const bf = att.before_image_url || att.before_url
+      const af = att.after_image_url || att.after_url
+      if (bf || af) { push(bf, 'before_after_before'); push(af, 'before_after_after') }
+      else if (!SKIP_TYPES.has(att.type)) push(att.url || att.image_url || att.first_attachment?.url, att.type)
+    }
+    return out
   })()
+
+  const isBeforeType = t => /_before$/.test(t) || t === 'before'
+  const isAfterType  = t => /_after$/.test(t)  || t === 'after'
+  const beforeUrl = attItems.find(i => isBeforeType(i.type))?.url || null
+  const afterUrl  = attItems.find(i => isAfterType(i.type))?.url || null
+  const combinedBA = clean(att?.before_after_url)
+  const hasBeforeAfter = !!(beforeUrl || afterUrl)
+  const isPromo = att?.type === 'promotion' || attItems.some(i => i.type === 'promotion')
+  const promoUrl = isPromo ? (attItems.find(i => i.type === 'promotion')?.url || clean(att?.image_url)) : null
+  // Everything that isn't the promo poster or a before/after shot — QR, size chart,
+  // portfolio, staff uploads, generic images.
+  const otherUrls = attItems
+    .filter(i => i.type !== 'promotion' && !isBeforeType(i.type) && !isAfterType(i.type))
+    .map(i => i.url)
 
   if (!text && !att) return null
 
@@ -566,15 +625,26 @@ function MessageBubble({ msg }) {
           {roleLabel}
         </p>
         <div className={`px-4 py-2.5 text-sm leading-relaxed break-words ${bubbleCls}`}>
-          {attImageUrl && <img src={attImageUrl} alt="" className="rounded-lg mb-2 max-w-full max-h-48 object-contain" />}
-          {att?.type === 'promotion' && (
+          {/* Plain images: QR codes, size charts, portfolio, staff uploads, etc. */}
+          {!isPromo && otherUrls.map((u, i) => (
+            <img key={i} src={u} alt="" className="rounded-lg mb-2 max-w-full max-h-48 object-contain" />
+          ))}
+          {/* Standalone Before / After pair */}
+          {!isPromo && hasBeforeAfter && <BeforeAfterPair before={beforeUrl} after={afterUrl} className="mb-2" />}
+          {/* Promotion card: poster + optional before/after + title/price */}
+          {isPromo && (
             <div className="mb-2 p-2 bg-white/70 rounded-lg border border-white/80">
-              {att.image_url && <img src={att.image_url} alt="" className="w-full max-h-32 object-cover rounded mb-2" />}
-              <p className="text-xs font-semibold">{att.title}</p>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-sm font-bold">฿{Number(att.price || 0).toLocaleString()}</span>
-                {att.original && <span className="text-xs text-ink-300 line-through">฿{Number(att.original).toLocaleString()}</span>}
-              </div>
+              {promoUrl && <img src={promoUrl} alt="" className="w-full max-h-40 object-cover rounded mb-2" />}
+              {hasBeforeAfter
+                ? <BeforeAfterPair before={beforeUrl} after={afterUrl} className="mb-2" />
+                : combinedBA && <img src={combinedBA} alt="" className="w-full max-h-32 object-cover rounded mb-2" />}
+              {att.title && <p className="text-xs font-semibold">{att.title}</p>}
+              {att.price != null && att.price !== '' && (
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-bold">฿{Number(att.price || 0).toLocaleString()}</span>
+                  {att.original && <span className="text-xs text-ink-300 line-through">฿{Number(att.original).toLocaleString()}</span>}
+                </div>
+              )}
             </div>
           )}
           {att?.type === 'link' && <a href={att.url} target="_blank" rel="noreferrer" className="block mb-1 text-xs underline break-all">🔗 {att.label || att.url}</a>}
@@ -605,11 +675,13 @@ function ConversationsInner() {
   const [search, setSearch] = useState('')
   const [attachment, setAttachment] = useState(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)  // mobile/tablet customer-detail drawer
   const [hasMoreOlder, setHasMoreOlder] = useState(false)
   const [loadingOlder, setLoadingOlder] = useState(false)
   const loadingOlderRef = useRef(false)
   const PAGE = 50
   const chatScrollRef = useRef(null)
+  const chatContentRef = useRef(null)
   const chatEndRef = useRef(null)
   const selected = conversations.find(c => c.id === selectedId)
 
@@ -681,22 +753,48 @@ function ConversationsInner() {
   }
 
   function handleChatScroll(e) {
-    if (e.currentTarget.scrollTop < 60) loadOlder()
+    const el = e.currentTarget
+    if (el.scrollTop < 60) loadOlder()
+    // Track whether the user is parked at the bottom. While they are, we keep the view
+    // pinned to the newest message (see the ResizeObserver below); once they scroll up
+    // to read history, we stop auto-following so we never yank them back down.
+    if (!loadingOlderRef.current) {
+      stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120
+    }
   }
 
-  // Auto-scroll to the newest message — but only when switching conversations or
-  // when the user is already near the bottom, so a background poll/realtime update
-  // (or loading older history) doesn't yank them away.
-  const prevSelRef = useRef(null)
+  // Auto-scroll to the newest message. Opening a conversation should always land at the
+  // bottom (latest), and it should STAY there even as images (size charts, promo/QR
+  // photos) finish loading and grow the content after the initial paint — which a
+  // one-shot scroll can't handle. So we keep a "stick to bottom" flag and a
+  // ResizeObserver that re-pins on every content size change while the flag is set.
+  const stickRef = useRef(true)
+  // Re-arm sticking whenever the conversation changes (the list is cleared then
+  // refilled asynchronously, so we must pin until the real messages + images settle).
+  useEffect(() => { stickRef.current = true }, [selectedId])
+
+  // Pin to bottom on message changes (new message, send, poll) when we're sticking.
   useEffect(() => {
     const el = chatScrollRef.current
-    if (!el) return
-    const convChanged = prevSelRef.current !== selectedId
-    prevSelRef.current = selectedId
-    if (loadingOlderRef.current) return   // prepending older history: keep position
-    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120
-    if (convChanged || nearBottom) el.scrollTop = el.scrollHeight
+    if (!el || loadingOlderRef.current) return
+    if (stickRef.current && messages.length > 0) {
+      requestAnimationFrame(() => { el.scrollTop = el.scrollHeight })
+    }
   }, [messages, selectedId])
+
+  // Keep pinned to the bottom while the content keeps growing (images decoding, font
+  // reflow) right after open — the key fix for the latest message slipping below the
+  // fold once a tall image loads.
+  useEffect(() => {
+    const el = chatScrollRef.current
+    const content = chatContentRef.current
+    if (!el || !content || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => {
+      if (!loadingOlderRef.current && stickRef.current) el.scrollTop = el.scrollHeight
+    })
+    ro.observe(content)
+    return () => ro.disconnect()
+  }, [selectedId])
 
   async function handleTakeover() {
     if (!selected) return
@@ -800,6 +898,20 @@ function ConversationsInner() {
     return true
   })
 
+  // Optimistically patch the selected conversation in local state so the new summary
+  // is visible immediately, then reload from the server to pick up summary_updated_at
+  // and message_count from the source of truth.
+  function handleSummaryRefresh(newSummary, newCount) {
+    setConversations(prev => prev.map(c =>
+      c.id === selectedId
+        ? { ...c, summary_th: newSummary,
+            summary_message_count: newCount ?? c.summary_message_count,
+            summary_updated_at: new Date().toISOString() }
+        : c
+    ))
+    loadConversations()
+  }
+
   const replying = ['human_handling', 'awaiting_human'].includes(selected?.status)
   // Staff can send to any selected conversation without taking over first; takeover
   // stays available for when they want the bot to stop and own the chat.
@@ -807,7 +919,7 @@ function ConversationsInner() {
 
   return (
     <div className="flex h-full min-h-0 overflow-hidden">
-      <div className="w-80 border-r border-ink-100 bg-white flex flex-col shrink-0">
+      <div className={`w-full md:w-80 border-r border-ink-100 bg-white flex-col shrink-0 ${selected ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-ink-100">
           <input type="text" placeholder="🔍 Search by name or branch…" value={search} onChange={e => setSearch(e.target.value)}
             className="w-full px-3 py-2 text-sm bg-cream-bg border border-ink-100 rounded-lg focus:border-rose-400 transition" />
@@ -844,7 +956,7 @@ function ConversationsInner() {
       </div>
 
       {!selected ? (
-        <div className="flex-1 flex items-center justify-center text-ink-300 bg-cream-bg">
+        <div className="flex-1 hidden md:flex items-center justify-center text-ink-300 bg-cream-bg">
           <div className="text-center">
             <p className="text-5xl mb-3">💬</p>
             <p className="display text-xl text-ink-500">Select a conversation</p>
@@ -853,15 +965,25 @@ function ConversationsInner() {
       ) : (
         <div className="flex-1 flex min-w-0 min-h-0">
           <div className="flex-1 flex flex-col min-w-0 min-h-0">
-            <div className="h-20 px-6 flex items-center justify-between border-b border-ink-100 bg-white shrink-0">
-              <div>
-                <h2 className="display text-xl text-ink-800">{selected._display_name}</h2>
-                <p className="text-xs text-ink-400 mt-0.5">
-                  {selected.branches?.name_th || 'No branch'} • {messages.length} messages • {selected._identity?.channel}
-                </p>
+            <div className="md:h-20 min-h-[5rem] px-4 md:px-6 py-3 md:py-0 flex items-center gap-3 justify-between border-b border-ink-100 bg-white shrink-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <button onClick={() => setSelectedId(null)} aria-label="Back to list"
+                  className="md:hidden text-xl text-ink-500 hover:text-rose-500 w-8 h-8 -ml-1 flex items-center justify-center rounded-lg hover:bg-cream-bg shrink-0">
+                  ←
+                </button>
+                <div className="min-w-0">
+                  <h2 className="display text-lg md:text-xl text-ink-800 truncate">{selected._display_name}</h2>
+                  <p className="text-xs text-ink-400 mt-0.5 truncate">
+                    {selected.branches?.name_th || 'No branch'} • {messages.length} messages • {selected._identity?.channel}
+                  </p>
+                </div>
               </div>
               <div className="flex flex-wrap justify-end gap-2">
                 <StatusPill status={selected.status} />
+                <button onClick={() => setInfoOpen(true)} title="Customer details"
+                  className="lg:hidden text-sm px-2.5 py-1 rounded-lg border border-ink-100 text-ink-500 hover:bg-cream-bg transition">
+                  ℹ️
+                </button>
                 {selected.status === 'active_bot' ? (
                   <Button onClick={handleTakeover} disabled={handoverBusy} variant="rose" size="sm">
                     {handoverBusy ? 'Taking over...' : 'Takeover'}
@@ -876,7 +998,7 @@ function ConversationsInner() {
               </div>
             </div>
             <div ref={chatScrollRef} onScroll={handleChatScroll} className="flex-1 min-h-0 overflow-y-auto bg-[#f8f5f1] scrollbar-thin">
-              <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col justify-end gap-3 px-5 py-5">
+              <div ref={chatContentRef} className="mx-auto flex min-h-full w-full max-w-4xl flex-col justify-end gap-3 px-5 py-5">
                 {messages.length === 0 ? (
                   <div className="my-auto text-center text-sm text-ink-300">
                     No messages in this conversation yet
@@ -920,23 +1042,26 @@ function ConversationsInner() {
               </div>
             </div>
           </div>
-          <div className="w-80 border-l border-ink-100 bg-cream-bg p-5 overflow-y-auto scrollbar-thin shrink-0">
+          {/* Detail panel: static column on large screens */}
+          <div className="hidden lg:block w-80 border-l border-ink-100 bg-cream-bg p-5 overflow-y-auto scrollbar-thin shrink-0">
             <SidePanel conv={selected} customerData={customerData} memoryData={memoryData}
-              handoverHistory={handoverHistory}
-              onSummaryRefresh={(newSummary, newCount) => {
-                // Optimistically patch the selected conversation in local state so
-                // the new summary is visible immediately, then reload from the server
-                // to pick up summary_updated_at and message_count from the source of truth.
-                setConversations(prev => prev.map(c =>
-                  c.id === selectedId
-                    ? { ...c, summary_th: newSummary,
-                        summary_message_count: newCount ?? c.summary_message_count,
-                        summary_updated_at: new Date().toISOString() }
-                    : c
-                ))
-                loadConversations()
-              }} />
+              handoverHistory={handoverHistory} onSummaryRefresh={handleSummaryRefresh} />
           </div>
+
+          {/* Detail panel: slide-in drawer on mobile/tablet */}
+          {infoOpen && (
+            <div className="fixed inset-0 z-40 lg:hidden">
+              <div onClick={() => setInfoOpen(false)} className="absolute inset-0 bg-ink-900/40" aria-hidden />
+              <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85%] bg-cream-bg p-5 overflow-y-auto scrollbar-thin shadow-xl">
+                <div className="flex justify-end mb-2">
+                  <button onClick={() => setInfoOpen(false)} aria-label="Close details"
+                    className="text-ink-400 hover:text-ink-700 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white transition">✕</button>
+                </div>
+                <SidePanel conv={selected} customerData={customerData} memoryData={memoryData}
+                  handoverHistory={handoverHistory} onSummaryRefresh={handleSummaryRefresh} />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -92,14 +92,14 @@ export default function PromotionsPage() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <header className="flex items-end justify-between mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-rose-500 mb-2">Campaigns</p>
-          <h1 className="display text-4xl text-ink-800">Promotions</h1>
+          <h1 className="display text-3xl sm:text-4xl text-ink-800">Promotions</h1>
           <p className="text-sm text-ink-400 mt-1">{promos.length} promotions</p>
         </div>
-        <Button variant="rose" onClick={startNew}>+ Add Promotion</Button>
+        <Button variant="rose" onClick={startNew} className="self-start sm:self-auto">+ Add Promotion</Button>
       </header>
 
       <div className="flex gap-2 mb-6 flex-wrap">
@@ -116,8 +116,8 @@ export default function PromotionsPage() {
       {showForm && (
         <Card className="p-6 mb-6">
           <h3 className="display text-xl text-ink-800 mb-5">{form.id ? 'Edit Promotion' : 'New Promotion'}</h3>
-          <div className="grid grid-cols-3 gap-5">
-            <div className="col-span-1 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="md:col-span-1 space-y-4">
               <ImageUploader bucket="promo_images" label="Poster (single, full promo flyer)" value={form.image_url} height="h-40"
                 onUploaded={r => setForm({...form, image_url: r.url})}
                 onCleared={url => { deleteFile('promo_images', url); setForm({...form, image_url: ''}) }} />
@@ -131,7 +131,7 @@ export default function PromotionsPage() {
                 onUploaded={r => setForm({...form, after_image_url: r.url})}
                 onCleared={url => { deleteFile('promo_images', url); setForm({...form, after_image_url: ''}) }} />
             </div>
-            <div className="col-span-2 grid grid-cols-2 gap-4">
+            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Title (Thai) *" value={form.title_th} onChange={v => setForm({...form, title_th: v})} />
               <Field label="Title (English)" value={form.title_en} onChange={v => setForm({...form, title_en: v})} />
               <div>
@@ -153,13 +153,13 @@ export default function PromotionsPage() {
               <Field label="Promo Price (THB)" type="number" value={form.promo_price} onChange={v => setForm({...form, promo_price: v})} />
               <Field label="Valid From" type="date" value={form.valid_from} onChange={v => setForm({...form, valid_from: v})} />
               <Field label="Valid Until" type="date" value={form.valid_until} onChange={v => setForm({...form, valid_until: v})} />
-              <div className="col-span-2">
+              <div className="col-span-full">
                 <Field label="Description (Thai)" multiline value={form.description_th} onChange={v => setForm({...form, description_th: v})} />
               </div>
-              <div className="col-span-2">
+              <div className="col-span-full">
                 <Field label="Terms & Conditions (Thai)" multiline value={form.terms_th} onChange={v => setForm({...form, terms_th: v})} />
               </div>
-              <div className="col-span-2">
+              <div className="col-span-full">
                 <label className="text-xs uppercase tracking-wider text-ink-400 mb-2 block">Branches *</label>
                 <div className="flex flex-wrap gap-2">
                   {branches.map(b => (
@@ -170,7 +170,7 @@ export default function PromotionsPage() {
                   ))}
                 </div>
               </div>
-              <div className="col-span-2">
+              <div className="col-span-full">
                 <Toggle label="Active" value={form.is_active} onChange={v => setForm({...form, is_active: v})} />
               </div>
             </div>

@@ -42,20 +42,20 @@ export default function OverviewPage() {
   }, [])
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <header className="flex items-end justify-between mb-10">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 sm:mb-10">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-rose-500 mb-2">Studio</p>
-          <h1 className="display text-4xl text-ink-800">Welcome back ✨</h1>
+          <h1 className="display text-3xl sm:text-4xl text-ink-800">Welcome back ✨</h1>
           <p className="text-sm text-ink-400 mt-1">Here's what's happening across both branches right now.</p>
         </div>
         <button onClick={refresh}
-          className="text-sm text-rose-700 hover:text-rose-900 px-4 py-2 rounded-lg border border-rose-200 hover:bg-rose-50 transition">
+          className="text-sm text-rose-700 hover:text-rose-900 px-4 py-2 rounded-lg border border-rose-200 hover:bg-rose-50 transition self-start sm:self-auto shrink-0">
           ↻ Refresh
         </button>
       </header>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
         <StatCard label="Conversations Today" value={stats.conversationsToday} accent="rose" />
         <StatCard label="Active Now" value={stats.activeNow} accent="emerald" />
         <StatCard label="Bookings Today" value={stats.bookingsToday} accent="amber" />

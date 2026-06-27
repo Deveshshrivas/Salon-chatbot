@@ -77,14 +77,14 @@ export default function StylistsPage() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <header className="flex items-end justify-between mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-rose-500 mb-2">Team</p>
-          <h1 className="display text-4xl text-ink-800">Stylists</h1>
+          <h1 className="display text-3xl sm:text-4xl text-ink-800">Stylists</h1>
           <p className="text-sm text-ink-400 mt-1">{stylists.length} stylists across all branches</p>
         </div>
-        <Button variant="rose" onClick={startNew}>+ Add Stylist</Button>
+        <Button variant="rose" onClick={startNew} className="self-start sm:self-auto">+ Add Stylist</Button>
       </header>
 
       <div className="flex gap-2 mb-6 flex-wrap">
@@ -103,14 +103,14 @@ export default function StylistsPage() {
       {showForm && (
         <Card className="p-6 mb-6">
           <h3 className="display text-xl text-ink-800 mb-5">{form.id ? 'Edit Stylist' : 'New Stylist'}</h3>
-          <div className="grid grid-cols-3 gap-5">
-            <div className="col-span-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="md:col-span-1">
               <ImageUploader bucket="stylist_photos" folder="" label="Photo"
                 value={form.photo_url} height="h-48"
                 onUploaded={r => setForm({...form, photo_url: r.url})}
                 onCleared={url => { deleteFile('stylist_photos', url); setForm({...form, photo_url: ''}) }} />
             </div>
-            <div className="col-span-2 grid grid-cols-2 gap-4">
+            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Name (Thai) *" value={form.name_th} onChange={v => setForm({...form, name_th: v})} />
               <Field label="Nickname (English)" value={form.nickname_en} onChange={v => setForm({...form, nickname_en: v})} />
               <div>
@@ -130,7 +130,7 @@ export default function StylistsPage() {
                   <option value="non-binary">Non-binary</option>
                 </select>
               </div>
-              <div className="col-span-2">
+              <div className="col-span-full">
                 <label className="text-xs uppercase tracking-wider text-ink-400 mb-1.5 block">Specialties</label>
                 <div className="flex flex-wrap gap-2 mb-2 min-h-[36px] p-2 bg-cream-bg rounded-lg border border-ink-100">
                   {form.specialties.map(t => (
@@ -150,7 +150,7 @@ export default function StylistsPage() {
                   <Button onClick={addTag} variant="soft" size="md">+ Add</Button>
                 </div>
               </div>
-              <div className="col-span-2">
+              <div className="col-span-full">
                 <Toggle label="Active" value={form.is_active} onChange={v => setForm({...form, is_active: v})} />
               </div>
             </div>
@@ -158,7 +158,7 @@ export default function StylistsPage() {
 
           <div className="mt-6 pt-6 border-t border-ink-100">
             <h4 className="text-xs uppercase tracking-wider text-ink-400 mb-3">Weekly Schedule</h4>
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
               {DAYS.map(d => {
                 const day = form.weekly_schedule[d.key] || { off: true }
                 const off = day.off === true

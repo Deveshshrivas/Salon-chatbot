@@ -116,18 +116,18 @@ export default function BranchesPage() {
   ]
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <header className="flex items-end justify-between mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-rose-500 mb-2">Locations</p>
-          <h1 className="display text-4xl text-ink-800">Branches</h1>
+          <h1 className="display text-3xl sm:text-4xl text-ink-800">Branches</h1>
           <p className="text-sm text-ink-400 mt-1">{branches.length} active locations</p>
         </div>
-        <Button variant="rose" onClick={startNew}>+ Add Branch</Button>
+        <Button variant="rose" onClick={startNew} className="self-start sm:self-auto">+ Add Branch</Button>
       </header>
 
-      <div className="flex gap-6">
-        <div className="w-72 space-y-2 shrink-0">
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="w-full md:w-72 space-y-2 shrink-0">
           {loading && <p className="text-ink-300 text-center p-4">Loading…</p>}
           {branches.map(b => (
             <button key={b.id} onClick={() => pick(b)}
@@ -157,26 +157,26 @@ export default function BranchesPage() {
               {msg && <p className="text-sm mb-4 p-2.5 bg-cream-bg rounded-lg">{msg}</p>}
 
               {tab === 'info' && (
-                <div className="grid grid-cols-2 gap-4 max-w-3xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
                   <Field label="Slug *" value={form.slug} onChange={v => setForm({...form, slug: v})} hint="kebab-case identifier" />
                   <Field label="Name (Thai) *" value={form.name_th} onChange={v => setForm({...form, name_th: v})} />
                   <Field label="Name (English)" value={form.name_en} onChange={v => setForm({...form, name_en: v})} />
                   <Field label="Phone" value={form.phone} onChange={v => setForm({...form, phone: v})} />
-                  <div className="col-span-2">
+                  <div className="col-span-full">
                     <Field label="Address (Thai)" value={form.address_th} onChange={v => setForm({...form, address_th: v})} multiline />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-full">
                     <Field label="Address (English)" value={form.address_en} onChange={v => setForm({...form, address_en: v})} multiline />
                   </div>
                   <Field label="Latitude" value={form.latitude} onChange={v => setForm({...form, latitude: v})} type="number" />
                   <Field label="Longitude" value={form.longitude} onChange={v => setForm({...form, longitude: v})} type="number" />
-                  <div className="col-span-2">
+                  <div className="col-span-full">
                     <Field label="Google Maps URL" value={form.google_maps_url} onChange={v => setForm({...form, google_maps_url: v})} />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-full">
                     <Toggle label="Active" value={form.is_active} onChange={v => setForm({...form, is_active: v})} />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-full">
                     <Button onClick={() => save('info')} disabled={saving} variant="primary">{saving ? '⏳ Saving…' : '💾 Save'}</Button>
                   </div>
                 </div>

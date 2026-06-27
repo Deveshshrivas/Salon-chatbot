@@ -143,11 +143,11 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <header className="flex items-end justify-between mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-rose-500 mb-2">Appointments</p>
-          <h1 className="display text-4xl text-ink-800">Bookings</h1>
+          <h1 className="display text-3xl sm:text-4xl text-ink-800">Bookings</h1>
           <p className="text-sm text-ink-400 mt-1">{filtered.length} {scope === 'all' ? 'total' : scope}</p>
         </div>
         <div className="flex gap-2">
@@ -156,7 +156,7 @@ export default function BookingsPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <StatCard label="Today" value={stats.today} tint="rose" />
         <StatCard label="Pending" value={stats.pending} tint="amber" />
         <StatCard label="Confirmed" value={stats.confirmed} tint="emerald" />
@@ -166,7 +166,7 @@ export default function BookingsPage() {
       <div className="flex gap-2 mb-4 flex-wrap items-center">
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="🔍 Search code, customer, service…"
-          className="px-3 py-2 text-sm bg-white border border-ink-100 rounded-lg w-72 focus:border-rose-400" />
+          className="px-3 py-2 text-sm bg-white border border-ink-100 rounded-lg w-full sm:w-72 focus:border-rose-400" />
         <div className="flex gap-1">
           {SCOPES.map(s => (
             <button key={s.value} onClick={() => setScope(s.value)}
@@ -187,10 +187,11 @@ export default function BookingsPage() {
         </select>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           <Card className="overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto scrollbar-thin">
+            <table className="w-full text-sm min-w-[36rem]">
               <thead className="bg-cream-bg">
                 <tr>
                   <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-ink-400 font-medium">Code</th>
@@ -231,14 +232,15 @@ export default function BookingsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </Card>
         </div>
 
-        <div className="col-span-1">
+        <div className="lg:col-span-1">
           {!selected ? (
             <EmptyState icon="📅" title="Select a booking" description="Click a row to view details and manage payment proof." />
           ) : (
-            <Card className="p-5 sticky top-6">
+            <Card className="p-5 lg:sticky lg:top-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-rose-500 mb-1">Booking</p>

@@ -66,20 +66,20 @@ export default function ServicesPage() {
   }, {})
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <header className="flex items-end justify-between mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-rose-500 mb-2">Catalog</p>
-          <h1 className="display text-4xl text-ink-800">Services</h1>
+          <h1 className="display text-3xl sm:text-4xl text-ink-800">Services</h1>
           <p className="text-sm text-ink-400 mt-1">{services.length} services • {filtered.length} shown</p>
         </div>
-        <Button variant="rose" onClick={startNew}>+ Add Service</Button>
+        <Button variant="rose" onClick={startNew} className="self-start sm:self-auto">+ Add Service</Button>
       </header>
 
       <div className="flex gap-2 mb-6 flex-wrap items-center">
         <input type="text" value={search} onChange={e => setSearch(e.target.value)}
           placeholder="🔍 Search services…"
-          className="px-3 py-2 text-sm bg-white border border-ink-100 rounded-lg w-72 focus:border-rose-400" />
+          className="px-3 py-2 text-sm bg-white border border-ink-100 rounded-lg w-full sm:w-72 focus:border-rose-400" />
         <button onClick={() => setFilter('')}
           className={`text-xs px-3 py-1.5 rounded-full transition ${!filter ? 'bg-ink-800 text-cream-bg' : 'bg-cream-bg text-ink-500 hover:bg-ink-100'}`}>All</button>
         {CATEGORIES.map(c => (
@@ -91,7 +91,7 @@ export default function ServicesPage() {
       {showForm && (
         <Card className="p-6 mb-6">
           <h3 className="display text-xl text-ink-800 mb-5">{editingSlug ? 'Edit Service' : 'New Service'}</h3>
-          <div className="grid grid-cols-3 gap-4 max-w-4xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl">
             <Field label="Slug *" value={form.slug} onChange={v => setForm({...form, slug: v})} disabled={!!editingSlug}
               hint={editingSlug ? '(immutable after creation)' : 'unique-id-with-dashes'} />
             <Field label="Name (Thai) *" value={form.name_th} onChange={v => setForm({...form, name_th: v})} />
@@ -105,11 +105,11 @@ export default function ServicesPage() {
             </div>
             <Field label="Duration (min)" type="number" value={form.duration_minutes} onChange={v => setForm({...form, duration_minutes: Number(v) || 0})} />
             <Field label="Display Order" type="number" value={form.display_order} onChange={v => setForm({...form, display_order: Number(v) || 100})} />
-            <div className="col-span-3">
+            <div className="col-span-full">
               <Field label="Description (Thai)" multiline value={form.description_th} onChange={v => setForm({...form, description_th: v})} />
             </div>
 
-            <div className="col-span-3 mt-2 grid grid-cols-2 gap-6">
+            <div className="col-span-full mt-2 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-cream-bg p-4 rounded-xl">
                 <p className="text-sm font-medium text-ink-700 mb-3">📍 Nakhon Pathom</p>
                 <div className="space-y-3">
@@ -134,7 +134,7 @@ export default function ServicesPage() {
               </div>
             </div>
 
-            <div className="col-span-3 flex items-center gap-6 pt-2">
+            <div className="col-span-full flex items-center gap-6 pt-2">
               <Toggle label="Requires Consultation" value={form.requires_consultation} onChange={v => setForm({...form, requires_consultation: v})} />
               <Toggle label="Active" value={form.is_active} onChange={v => setForm({...form, is_active: v})} />
             </div>
@@ -156,7 +156,8 @@ export default function ServicesPage() {
               <div key={cat}>
                 <h2 className="display text-xl text-ink-700 mb-3 capitalize">{cat} <span className="text-xs text-ink-400">({items.length})</span></h2>
                 <Card className="overflow-hidden">
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto scrollbar-thin">
+                  <table className="w-full text-sm min-w-[40rem]">
                     <thead className="bg-cream-bg">
                       <tr>
                         <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-ink-400 font-medium">Service</th>
@@ -194,6 +195,7 @@ export default function ServicesPage() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </Card>
               </div>
             ))}

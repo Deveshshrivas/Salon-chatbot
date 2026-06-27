@@ -50,7 +50,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
       <header className="mb-8">
         <p className="text-xs uppercase tracking-[0.22em] text-rose-500 mb-2">System</p>
         <h1 className="display text-4xl text-ink-800">Settings</h1>
@@ -73,7 +73,7 @@ export default function SettingsPage() {
 
       <Section title="🟢 System Status">
         {loading ? <p className="text-ink-300">Checking…</p> : (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <StatusRow label="Supabase" value={status.supabase} ok={status.supabase === 'connected'} />
             <StatusRow label="Last check" value={status.lastCheck} />
             <StatusRow label="Active handovers" value={status.activeHandovers} ok={status.activeHandovers === 0} />
@@ -111,7 +111,7 @@ export default function SettingsPage() {
       </Section>
 
       <Section title="🪣 Storage Buckets">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <BucketRow name="salon_media" purpose="Bot-facing media library (price lists, payment QR, etc)" />
           <BucketRow name="promo_images" purpose="Promotion posters + before/after teasers" />
           <BucketRow name="stylist_photos" purpose="Stylist profile photos" />

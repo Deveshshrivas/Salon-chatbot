@@ -125,11 +125,11 @@ export default function BeforeAfterPage() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <header className="flex items-end justify-between mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-rose-500 mb-2">Portfolio</p>
-          <h1 className="display text-4xl text-ink-800">Gallery</h1>
+          <h1 className="display text-3xl sm:text-4xl text-ink-800">Gallery</h1>
           <p className="text-sm text-ink-400 mt-1">{media.length} images • Before/after and gallery shots</p>
         </div>
         <div className="flex gap-2">
@@ -166,8 +166,8 @@ export default function BeforeAfterPage() {
           <h3 className="display text-xl text-ink-800 mb-5">
             {form.id ? 'Edit Image' : (form.media_type === 'before_after' ? 'New Before/After' : 'New Gallery Image')}
           </h3>
-          <div className="grid grid-cols-3 gap-5">
-            <div className="col-span-1 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="md:col-span-1 space-y-3">
               <ImageUploader bucket={form.bucket} folder={form.media_type}
                 label={form.media_type === 'before_after' ? 'Before / Main image *' : 'Image *'}
                 value={form._url} height="h-56"
@@ -185,7 +185,7 @@ export default function BeforeAfterPage() {
                 </>
               )}
             </div>
-            <div className="col-span-2 grid grid-cols-2 gap-4">
+            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs uppercase tracking-wider text-ink-400 mb-1.5 block">Type</label>
                 <select value={form.media_type} onChange={e => setForm({...form, media_type: e.target.value})}
@@ -219,10 +219,10 @@ export default function BeforeAfterPage() {
               <Field label="Title (Thai)" value={form.title_th} onChange={v => setForm({...form, title_th: v})} />
               <Field label="Title (English)" value={form.title_en} onChange={v => setForm({...form, title_en: v})} />
               <Field label="Display Order" type="number" value={form.display_order} onChange={v => setForm({...form, display_order: Number(v) || 0})} />
-              <div className="col-span-2">
+              <div className="col-span-full">
                 <Field label="Caption (Thai)" multiline value={form.caption_th} onChange={v => setForm({...form, caption_th: v})} />
               </div>
-              <div className="col-span-2">
+              <div className="col-span-full">
                 <label className="text-xs uppercase tracking-wider text-ink-400 mb-1.5 block">Style Tags</label>
                 <div className="flex flex-wrap gap-2 mb-2 min-h-[36px] p-2 bg-cream-bg rounded-lg border border-ink-100">
                   {form.style_tag.map(t => (
