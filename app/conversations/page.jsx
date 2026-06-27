@@ -526,6 +526,17 @@ function MessageBubble({ msg }) {
   if (msg.metadata) { try { att = typeof msg.metadata === 'string' ? JSON.parse(msg.metadata) : msg.metadata } catch (e) {} }
   const text = msg.content_text || msg.content || ''
 
+  // Pull an image URL out of metadata for ANY image-bearing attachment type
+  // (deposit_qr, size chart, before/after, portfolio…), not just type==='image'.
+  // promotion/link/map have their own render blocks below, so exclude them here.
+  const attImageUrl = (() => {
+    if (!att || typeof att !== 'object') return null
+    if (att.type === 'promotion' || att.type === 'link' || att.type === 'map') return null
+    const cand = att.url || att.image_url || att.first_attachment?.url ||
+      (Array.isArray(att.attachments) ? att.attachments.find(a => a && a.url)?.url : null)
+    return typeof cand === 'string' && cand.trim() ? cand : null
+  })()
+
   if (!text && !att) return null
 
   // Customer ALWAYS on the left, bot/staff ALWAYS on the right.
@@ -555,7 +566,7 @@ function MessageBubble({ msg }) {
           {roleLabel}
         </p>
         <div className={`px-4 py-2.5 text-sm leading-relaxed break-words ${bubbleCls}`}>
-          {att?.type === 'image' && <img src={att.url} alt="" className="rounded-lg mb-2 max-w-full max-h-48 object-contain" />}
+          {attImageUrl && <img src={attImageUrl} alt="" className="rounded-lg mb-2 max-w-full max-h-48 object-contain" />}
           {att?.type === 'promotion' && (
             <div className="mb-2 p-2 bg-white/70 rounded-lg border border-white/80">
               {att.image_url && <img src={att.image_url} alt="" className="w-full max-h-32 object-cover rounded mb-2" />}
