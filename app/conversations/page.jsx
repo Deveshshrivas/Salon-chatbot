@@ -34,6 +34,31 @@ function timeFull(ts) {
   return new Date(ts).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })
 }
 
+// Bot replies sometimes paste a raw URL (e.g. a long percent-encoded Google Maps link
+// from branches.google_maps_url) straight into messages.content_text, which then prints
+// as an unreadable wall of text. Scan the text for http(s) URLs and render each as a
+// short clickable link: Maps URLs get a friendly "📍 Open map" label, others show "🔗 host".
+function renderTextWithLinks(text) {
+  const parts = String(text).split(/(https?:\/\/[^\s]+)/g)
+  return parts.map((part, i) => {
+    if (!/^https?:\/\//.test(part)) return part            // plain text, unchanged
+    // URLs can swallow trailing punctuation (".", ")") from the sentence — keep it as text.
+    const m = part.match(/^(.*?)([.,;:)\]]*)$/s)
+    const url = m ? m[1] : part
+    const trail = m ? m[2] : ''
+    const isMap = /google\.[^/]+\/maps|\/maps\/|[?&]q=-?\d|\/@-?\d/.test(url)
+    let host = ''
+    try { host = new URL(url).hostname.replace(/^www\./, '') } catch (e) {}
+    const label = isMap ? '📍 เปิดแผนที่ (Open map)' : `🔗 ${host || 'link'}`
+    return (
+      <span key={i}>
+        <a href={url} target="_blank" rel="noreferrer" className="underline text-rose-600 break-all">{label}</a>
+        {trail}
+      </span>
+    )
+  })
+}
+
 // Merge two message lists into one chronological list (oldest→newest), de-duped by
 // id, dropping any optimistic placeholder once its real server twin (same role +
 // text) has arrived. Used so background polls/realtime add new messages and
@@ -648,7 +673,7 @@ function MessageBubble({ msg }) {
             </div>
           )}
           {att?.type === 'link' && <a href={att.url} target="_blank" rel="noreferrer" className="block mb-1 text-xs underline break-all">🔗 {att.label || att.url}</a>}
-          {text && <p style={{ whiteSpace: 'pre-wrap' }}>{text}</p>}
+          {text && <p style={{ whiteSpace: 'pre-wrap' }}>{renderTextWithLinks(text)}</p>}
           <p className={`text-[11px] mt-1.5 text-ink-400 ${isCustomer ? 'text-left' : 'text-right'}`}>
             {msg.created_at ? new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''}
           </p>
